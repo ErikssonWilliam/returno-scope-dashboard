@@ -7,7 +7,7 @@ import { ReturnForecast } from "@/components/dashboard/ReturnForecast";
 import { TimeframeSelector } from "@/components/dashboard/TimeframeSelector";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { LinkedIn, Instagram } from "lucide-react";
+import { Linkedin, Instagram } from "lucide-react";
 import { useState } from "react";
 
 const Index = () => {
@@ -53,7 +53,7 @@ const Index = () => {
                     rel="noopener noreferrer"
                     className="text-indigo-600 hover:text-indigo-800 transition-colors"
                   >
-                    <LinkedIn size={24} />
+                    <Linkedin size={24} />
                   </a>
                   <a 
                     href="https://instagram.com/returnoscope" 

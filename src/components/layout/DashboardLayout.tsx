@@ -5,6 +5,8 @@ import { ReactNode, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { SearchBar } from "@/components/SearchBar";
+import { FavoriteSecurities } from "@/components/market/FavoriteSecurities";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -12,16 +14,20 @@ interface DashboardLayoutProps {
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
   
   useEffect(() => {
     const role = sessionStorage.getItem("userRole");
+    const user = sessionStorage.getItem("username");
     setUserRole(role);
+    setUsername(user);
   }, []);
 
   const navigate = useNavigate();
   
   const handleLogout = () => {
     sessionStorage.removeItem("userRole");
+    sessionStorage.removeItem("username");
     toast.success("Logged out successfully");
     navigate("/login");
   };
@@ -32,28 +38,47 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <AppSidebar userRole={userRole} />
         
         <main className="flex-1 overflow-auto">
-          <div className="p-4 sm:p-6 flex items-center justify-between">
-            <div className="flex items-center">
+          <div className="p-4 sm:p-6 flex flex-col md:flex-row md:items-center justify-between border-b bg-white shadow-sm">
+            <div className="flex items-center mb-4 md:mb-0">
               <SidebarTrigger />
               <div className="ml-4">
                 <span className="text-xl font-semibold text-slate-800">ReturnoScope</span>
               </div>
             </div>
             
+            <div className="flex-1 mx-4 max-w-lg">
+              <SearchBar />
+            </div>
+            
             <div className="flex items-center gap-2">
               {userRole && (
                 <>
-                  <span className="text-sm bg-slate-200 px-2 py-1 rounded-md capitalize">
-                    {userRole}
-                  </span>
-                  <Button variant="ghost" size="icon" onClick={handleLogout}>
-                    <LogOut className="h-5 w-5" />
-                  </Button>
+                  <div className="flex items-center">
+                    <div className="mr-2 hidden md:block">
+                      <p className="text-sm font-medium">{username || "User"}</p>
+                      <p className="text-xs text-slate-500 capitalize">{userRole}</p>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
+                      <LogOut className="h-5 w-5" />
+                    </Button>
+                  </div>
                 </>
               )}
             </div>
           </div>
-          {children}
+          
+          <div className="flex flex-col md:flex-row">
+            <div className="flex-1">
+              {children}
+            </div>
+            
+            {/* Favorite Securities Sidebar - only show for non-admin users */}
+            {userRole === "trader" && (
+              <div className="w-full md:w-80 p-4 border-l bg-white">
+                <FavoriteSecurities />
+              </div>
+            )}
+          </div>
         </main>
       </div>
     </SidebarProvider>
