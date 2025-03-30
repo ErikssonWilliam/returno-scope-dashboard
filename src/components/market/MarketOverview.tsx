@@ -10,6 +10,13 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUp, ArrowDown } from "lucide-react";
+import { Dispatch, SetStateAction } from "react";
+
+// Define the props interface
+interface MarketOverviewProps {
+  selectedSecurity: string;
+  onSelectSecurity: Dispatch<SetStateAction<string>>;
+}
 
 // Sample market data
 const marketData = [
@@ -85,7 +92,7 @@ const marketData = [
   },
 ];
 
-export function MarketOverview() {
+export function MarketOverview({ selectedSecurity, onSelectSecurity }: MarketOverviewProps) {
   const formatNumber = (num: number) => {
     return new Intl.NumberFormat().format(num);
   };
@@ -208,7 +215,12 @@ export function MarketOverview() {
             </TableHeader>
             <TableBody>
               {marketData.map((item) => (
-                <TableRow key={item.symbol}>
+                <TableRow 
+                  key={item.symbol} 
+                  className={selectedSecurity === item.symbol ? "bg-slate-100" : undefined}
+                  onClick={() => onSelectSecurity(item.symbol)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <TableCell className="font-medium">{item.symbol}</TableCell>
                   <TableCell>{item.name}</TableCell>
                   <TableCell className="text-right">${item.lastPrice.toFixed(2)}</TableCell>

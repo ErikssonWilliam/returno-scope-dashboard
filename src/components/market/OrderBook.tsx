@@ -1,7 +1,12 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+// Define the props interface
+interface OrderBookProps {
+  selectedSecurity: string;
+}
 
 // Sample order book data
 const initialOrderBook = {
@@ -57,9 +62,19 @@ const initialOrderBook = {
 
 const availableSymbols = ["AAPL", "MSFT", "GOOGL"];
 
-export function OrderBook() {
-  const [selectedSymbol, setSelectedSymbol] = useState("AAPL");
-  const orderBook = initialOrderBook[selectedSymbol as keyof typeof initialOrderBook];
+export function OrderBook({ selectedSecurity }: OrderBookProps) {
+  const [localSelectedSymbol, setLocalSelectedSymbol] = useState(selectedSecurity || "AAPL");
+  
+  // Update local state when prop changes
+  useEffect(() => {
+    if (selectedSecurity && availableSymbols.includes(selectedSecurity)) {
+      setLocalSelectedSymbol(selectedSecurity);
+    }
+  }, [selectedSecurity]);
+  
+  // If selected security is not in our available symbols, use the first one
+  const orderBook = initialOrderBook[localSelectedSymbol as keyof typeof initialOrderBook] || 
+                    initialOrderBook[availableSymbols[0] as keyof typeof initialOrderBook];
 
   const calculateTotalSize = (orders: Array<{ price: number, size: number }>) => {
     return orders.reduce((total, order) => total + order.size, 0);
@@ -77,11 +92,11 @@ export function OrderBook() {
           <button
             key={symbol}
             className={`px-4 py-2 rounded-md ${
-              selectedSymbol === symbol 
+              localSelectedSymbol === symbol 
                 ? "bg-primary text-primary-foreground" 
                 : "bg-secondary text-secondary-foreground"
             }`}
-            onClick={() => setSelectedSymbol(symbol)}
+            onClick={() => setLocalSelectedSymbol(symbol)}
           >
             {symbol}
           </button>

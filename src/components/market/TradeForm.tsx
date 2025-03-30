@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,6 +16,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
+// Define the props interface
+interface TradeFormProps {
+  selectedSecurity: string;
+}
 
 // Market data
 const marketData = {
@@ -43,13 +47,15 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export function TradeForm() {
-  const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
+export function TradeForm({ selectedSecurity }: TradeFormProps) {
+  const [localSelectedSymbol, setLocalSelectedSymbol] = useState<string | null>(
+    selectedSecurity && Object.keys(marketData).includes(selectedSecurity) ? selectedSecurity : null
+  );
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      symbol: "",
+      symbol: localSelectedSymbol || "",
       orderType: "market",
       direction: "buy",
       quantity: "",
@@ -57,11 +63,19 @@ export function TradeForm() {
     },
   });
 
+  // Update the form when selectedSecurity prop changes
+  useEffect(() => {
+    if (selectedSecurity && Object.keys(marketData).includes(selectedSecurity)) {
+      setLocalSelectedSymbol(selectedSecurity);
+      form.setValue("symbol", selectedSecurity);
+    }
+  }, [selectedSecurity, form]);
+
   const orderType = form.watch("orderType");
   const direction = form.watch("direction");
 
   const handleSymbolSelect = (symbol: string) => {
-    setSelectedSymbol(symbol);
+    setLocalSelectedSymbol(symbol);
     form.setValue("symbol", symbol);
   };
 
@@ -92,7 +106,7 @@ export function TradeForm() {
       quantity: "",
       limitPrice: "",
     });
-    setSelectedSymbol(null);
+    setLocalSelectedSymbol(null);
   };
 
   return (
@@ -118,7 +132,7 @@ export function TradeForm() {
                         <Button
                           key={symbol}
                           type="button"
-                          variant={selectedSymbol === symbol ? "default" : "outline"}
+                          variant={localSelectedSymbol === symbol ? "default" : "outline"}
                           className="flex-1 min-w-[4rem]"
                           onClick={() => handleSymbolSelect(symbol)}
                         >
@@ -247,27 +261,27 @@ export function TradeForm() {
           <CardTitle>Market Information</CardTitle>
         </CardHeader>
         <CardContent>
-          {selectedSymbol ? (
+          {localSelectedSymbol ? (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-2">{selectedSymbol}</h3>
+                <h3 className="text-lg font-semibold mb-2">{localSelectedSymbol}</h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-slate-100 p-4 rounded-lg">
                     <p className="text-sm text-slate-500">Last Price</p>
                     <p className="text-2xl font-bold">
-                      ${marketData[selectedSymbol as keyof typeof marketData].lastPrice.toFixed(2)}
+                      ${marketData[localSelectedSymbol as keyof typeof marketData].lastPrice.toFixed(2)}
                     </p>
                   </div>
                   <div className="bg-green-50 p-4 rounded-lg">
                     <p className="text-sm text-slate-500">Bid</p>
                     <p className="text-2xl font-bold text-green-600">
-                      ${marketData[selectedSymbol as keyof typeof marketData].bid.toFixed(2)}
+                      ${marketData[localSelectedSymbol as keyof typeof marketData].bid.toFixed(2)}
                     </p>
                   </div>
                   <div className="bg-red-50 p-4 rounded-lg">
                     <p className="text-sm text-slate-500">Ask</p>
                     <p className="text-2xl font-bold text-red-600">
-                      ${marketData[selectedSymbol as keyof typeof marketData].ask.toFixed(2)}
+                      ${marketData[localSelectedSymbol as keyof typeof marketData].ask.toFixed(2)}
                     </p>
                   </div>
                 </div>
@@ -280,7 +294,7 @@ export function TradeForm() {
                     <>
                       <div className="flex justify-between">
                         <span className="text-slate-500">Symbol</span>
-                        <span className="font-medium">{selectedSymbol}</span>
+                        <span className="font-medium">{localSelectedSymbol}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-slate-500">Action</span>
@@ -312,8 +326,8 @@ export function TradeForm() {
                               const quantity = parseFloat(form.watch("quantity") || "0");
                               const price = orderType === "market"
                                 ? (direction === "buy" 
-                                  ? marketData[selectedSymbol as keyof typeof marketData].ask 
-                                  : marketData[selectedSymbol as keyof typeof marketData].bid)
+                                  ? marketData[localSelectedSymbol as keyof typeof marketData].ask 
+                                  : marketData[localSelectedSymbol as keyof typeof marketData].bid)
                                 : parseFloat(form.watch("limitPrice") || "0");
                               const total = quantity * price;
                               const fee = total * 0.001; // 0.1% fee
@@ -330,8 +344,8 @@ export function TradeForm() {
                               const quantity = parseFloat(form.watch("quantity") || "0");
                               const price = orderType === "market"
                                 ? (direction === "buy" 
-                                  ? marketData[selectedSymbol as keyof typeof marketData].ask 
-                                  : marketData[selectedSymbol as keyof typeof marketData].bid)
+                                  ? marketData[localSelectedSymbol as keyof typeof marketData].ask 
+                                  : marketData[localSelectedSymbol as keyof typeof marketData].bid)
                                 : parseFloat(form.watch("limitPrice") || "0");
                               const total = quantity * price;
                               return (total * 0.001).toFixed(2); // 0.1% fee
