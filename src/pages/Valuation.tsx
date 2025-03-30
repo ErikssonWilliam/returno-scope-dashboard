@@ -7,8 +7,8 @@ import MonteCarloValuation from "@/components/valuation/MonteCarloValuation";
 import FiniteDifferenceValuation from "@/components/valuation/FiniteDifferenceValuation";
 import BinomialTreeValuation from "@/components/valuation/BinomialTreeValuation";
 import BlackScholesValuation from "@/components/valuation/BlackScholesValuation";
-import { HestonModelValuation } from "@/components/valuation/HestonModelValuation";
-import { GarchPoissonValuation } from "@/components/valuation/GarchPoissonValuation";
+import HestonModelValuation from "@/components/valuation/HestonModelValuation";
+import GarchPoissonValuation from "@/components/valuation/GarchPoissonValuation";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 

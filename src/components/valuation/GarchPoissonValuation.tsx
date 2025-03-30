@@ -10,13 +10,13 @@ import { calculateGARCHPoissonOptionPrice, GARCHPoissonInput } from './utils/gar
 type ValueType = number | string;
 
 interface GARCHPoissonValuationProps {
-    
+    timeHorizon?: number;
 }
 
-const GARCHPoissonValuation: React.FC<GARCHPoissonValuationProps> = () => {
+const GarchPoissonValuation: React.FC<GARCHPoissonValuationProps> = ({ timeHorizon = 1 }) => {
     const [S, setS] = useState<ValueType>(100);
     const [K, setK] = useState<ValueType>(100);
-    const [T, setT] = useState<ValueType>(1);
+    const [T, setT] = useState<ValueType>(timeHorizon);
     const [r, setR] = useState<ValueType>(0.05);
     const [sigma, setSigma] = useState<ValueType>(0.2);
     const [lambda, setLambda] = useState<ValueType>(0.5);
@@ -31,6 +31,10 @@ const GARCHPoissonValuation: React.FC<GARCHPoissonValuationProps> = () => {
     const [impliedVolatility, setImpliedVolatility] = useState<ValueType>('Not calculated');
     const [iterations, setIterations] = useState<number>(10000);
     const [timeSteps, setTimeSteps] = useState<number>(250);
+
+    useEffect(() => {
+        setT(timeHorizon);
+    }, [timeHorizon]);
 
     const handleCalculate = async () => {
         const numericCheck = (value: ValueType): number => {
@@ -89,7 +93,6 @@ const GARCHPoissonValuation: React.FC<GARCHPoissonValuationProps> = () => {
         }
     };
 
-    // Input change handlers
     const handleSChange = (e: React.ChangeEvent<HTMLInputElement>) => setS(e.target.value);
     const handleKChange = (e: React.ChangeEvent<HTMLInputElement>) => setK(e.target.value);
     const handleTChange = (e: React.ChangeEvent<HTMLInputElement>) => setT(e.target.value);
@@ -259,4 +262,4 @@ const GARCHPoissonValuation: React.FC<GARCHPoissonValuationProps> = () => {
     );
 };
 
-export default GARCHPoissonValuation;
+export default GarchPoissonValuation;

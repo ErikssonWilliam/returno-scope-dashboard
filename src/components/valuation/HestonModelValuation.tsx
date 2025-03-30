@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,12 +11,21 @@ import {
     ValueType
 } from "@/lib/types";
 
-const HestonModelValuation: React.FC = () => {
+interface HestonModelValuationProps {
+    timeHorizon?: number;
+}
+
+const HestonModelValuation: React.FC<HestonModelValuationProps> = ({ timeHorizon = 1 }) => {
     const [strikePrice, setStrikePrice] = useState<number>(100);
-    const [timeToMaturity, setTimeToMaturity] = useState<number>(1);
+    const [timeToMaturity, setTimeToMaturity] = useState<number>(timeHorizon);
     const [riskFreeRate, setRiskFreeRate] = useState<number>(0.05);
     const [volatility, setVolatility] = useState<number>(0.20);
     const [currentPrice, setCurrentPrice] = useState<number>(100);
+
+    // Update timeToMaturity when timeHorizon prop changes
+    useEffect(() => {
+        setTimeToMaturity(timeHorizon);
+    }, [timeHorizon]);
 
     // Heston Model Parameters
     const [kappa, setKappa] = useState<number>(1.5);       // Mean reversion rate

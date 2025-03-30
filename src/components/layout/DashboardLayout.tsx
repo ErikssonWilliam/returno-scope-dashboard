@@ -1,4 +1,3 @@
-
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { BarChart3, Home, PieChart, TrendingUp, LineChart, NewspaperIcon, DollarSign, Calculator, LogOut } from "lucide-react";
 import { ReactNode, useEffect, useState } from "react";
@@ -6,6 +5,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { SearchBar } from "@/components/SearchBar";
+import { FavoriteSecurities } from "@/components/market/FavoriteSecurities";
 
 interface DashboardLayoutProps {
   children: ReactNode;
