@@ -7,6 +7,8 @@ import MonteCarloValuation from "@/components/valuation/MonteCarloValuation";
 import FiniteDifferenceValuation from "@/components/valuation/FiniteDifferenceValuation";
 import BinomialTreeValuation from "@/components/valuation/BinomialTreeValuation";
 import BlackScholesValuation from "@/components/valuation/BlackScholesValuation";
+import HestonModelValuation from "@/components/valuation/HestonModelValuation";
+import GarchPoissonValuation from "@/components/valuation/GarchPoissonValuation";
 
 const Valuation = () => {
   const [activeTab, setActiveTab] = useState("monte-carlo");
@@ -27,11 +29,13 @@ const Valuation = () => {
           onValueChange={setActiveTab}
           className="w-full"
         >
-          <TabsList className="mb-6 bg-white">
-            <TabsTrigger value="monte-carlo">Monte Carlo Simulation</TabsTrigger>
-            <TabsTrigger value="finite-difference">Finite Difference Methods</TabsTrigger>
-            <TabsTrigger value="binomial-tree">Binomial Trees</TabsTrigger>
-            <TabsTrigger value="black-scholes">Black-Scholes Model</TabsTrigger>
+          <TabsList className="mb-6 bg-white overflow-x-auto flex whitespace-nowrap max-w-full">
+            <TabsTrigger value="monte-carlo" className="px-2 md:px-3 py-1.5 text-xs md:text-sm">Monte Carlo</TabsTrigger>
+            <TabsTrigger value="finite-difference" className="px-2 md:px-3 py-1.5 text-xs md:text-sm">Finite Difference</TabsTrigger>
+            <TabsTrigger value="binomial-tree" className="px-2 md:px-3 py-1.5 text-xs md:text-sm">Binomial Trees</TabsTrigger>
+            <TabsTrigger value="black-scholes" className="px-2 md:px-3 py-1.5 text-xs md:text-sm">Black-Scholes</TabsTrigger>
+            <TabsTrigger value="heston-model" className="px-2 md:px-3 py-1.5 text-xs md:text-sm">Heston Model</TabsTrigger>
+            <TabsTrigger value="garch-poisson" className="px-2 md:px-3 py-1.5 text-xs md:text-sm">GARCH-Poisson</TabsTrigger>
           </TabsList>
           
           <TabsContent value="monte-carlo">
@@ -90,6 +94,36 @@ const Valuation = () => {
               </CardHeader>
               <CardContent>
                 <BlackScholesValuation />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="heston-model">
+            <Card>
+              <CardHeader>
+                <CardTitle>Heston Stochastic Volatility Model</CardTitle>
+                <CardDescription>
+                  Advanced model that incorporates stochastic volatility to better capture market dynamics
+                  and volatility smiles observed in options markets.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <HestonModelValuation />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="garch-poisson">
+            <Card>
+              <CardHeader>
+                <CardTitle>GARCH(1,1) with Poisson Jumps</CardTitle>
+                <CardDescription>
+                  Combines time-varying volatility from GARCH models with sudden price jumps from a Poisson process,
+                  ideal for capturing market crashes and rallies.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GarchPoissonValuation />
               </CardContent>
             </Card>
           </TabsContent>

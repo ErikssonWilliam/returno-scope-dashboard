@@ -3,6 +3,8 @@
 
 ReturnoScope is a comprehensive financial portfolio management and analysis application designed for investors and financial analysts. It provides powerful tools for tracking market performance, analyzing portfolio risk metrics, and forecasting returns.
 
+🚀 **[Live Demo: ReturnoScope.lovable.app](https://returnoscope.lovable.app)**
+
 ## Key Features
 
 - **Portfolio Management**: Monitor your investments with detailed breakdowns, VaR analysis, and Expected Shortfall metrics
@@ -15,6 +17,8 @@ ReturnoScope is a comprehensive financial portfolio management and analysis appl
   - Finite Difference Methods
   - Binomial Trees
   - Black-Scholes-Merton Model
+  - Heston Stochastic Volatility Model
+  - GARCH(1,1) with Poisson Jumps
 
 ## Technology Stack
 
@@ -38,3 +42,12 @@ npm run dev
 ```
 
 Visit `http://localhost:5173` to view the application.
+
+## Connect With Us
+
+Have questions or feedback? Connect with our team:
+
+- [LinkedIn](https://linkedin.com/in/returnoscope)
+- [Instagram](https://instagram.com/returnoscope)
+
+Or email us at: contact@returnoscope.app
