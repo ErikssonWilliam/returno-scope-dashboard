@@ -43,11 +43,3 @@ npm run dev
 
 Visit `http://localhost:5173` to view the application.
 
-## Connect With Us
-
-Have questions or feedback? Connect with our team:
-
-- [LinkedIn](https://linkedin.com/in/returnoscope)
-- [Instagram](https://instagram.com/returnoscope)
-
-Or email us at: contact@returnoscope.app
