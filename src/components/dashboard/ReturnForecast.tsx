@@ -1,142 +1,181 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Area, ComposedChart } from "recharts";
-import { generateForecastData } from "@/lib/mock-data";
-import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from "@/components/ui/table";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export const ReturnForecast = () => {
-  const { forecastData, scenarioAnalysis } = generateForecastData();
+interface ReturnForecastProps {
+  timeHorizon?: number; // Default is 1 year if not provided
+}
+
+export const ReturnForecast = ({ timeHorizon = 1 }: ReturnForecastProps) => {
+  const [selectedModel, setSelectedModel] = useState("arima");
+  
+  // Generate forecast data based on selected model and time horizon
+  const generateForecastData = (model: string, horizon: number) => {
+    const data = [];
+    const months = Math.ceil(horizon * 12); // Convert years to months
+    const startDate = new Date();
+    
+    // Starting values and volatility vary by model
+    let baseReturn = 0;
+    let volatility = 0;
+    
+    switch (model) {
+      case "arima":
+        baseReturn = 0.7; // 0.7% monthly return
+        volatility = 1.5;
+        break;
+      case "garch":
+        baseReturn = 0.6; 
+        volatility = 2.2;
+        break;
+      case "montecarlo":
+        baseReturn = 0.65;
+        volatility = 2.5;
+        break;
+      case "regime":
+        baseReturn = 0.75;
+        volatility = 1.8;
+        break;
+      default:
+        baseReturn = 0.7;
+        volatility = 1.5;
+    }
+    
+    // Cumulative return starts at 0
+    let cumulativeReturn = 0;
+    
+    // Confidence interval bounds
+    let lowerBound = 0;
+    let upperBound = 0;
+    
+    for (let i = 0; i <= months; i++) {
+      const date = new Date(startDate);
+      date.setMonth(startDate.getMonth() + i);
+      
+      // Randomize monthly returns based on model parameters
+      const monthReturn = baseReturn + (Math.random() - 0.5) * volatility;
+      
+      // Add to cumulative return (compounding effect)
+      cumulativeReturn = i === 0 ? 0 : cumulativeReturn * (1 + monthReturn / 100) + monthReturn / 10;
+      
+      // Calculate confidence intervals (widen over time)
+      const timeEffect = Math.sqrt(i) * volatility / 10;
+      lowerBound = cumulativeReturn - timeEffect;
+      upperBound = cumulativeReturn + timeEffect;
+      
+      data.push({
+        date: date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        return: parseFloat(cumulativeReturn.toFixed(2)),
+        lowerBound: parseFloat(lowerBound.toFixed(2)),
+        upperBound: parseFloat(upperBound.toFixed(2))
+      });
+    }
+    
+    return data;
+  };
+  
+  const forecastData = generateForecastData(selectedModel, timeHorizon);
   
   return (
     <Card>
-      <CardHeader className="pb-0">
+      <CardHeader>
         <CardTitle>Return Forecast</CardTitle>
-        <CardDescription>Projected returns with confidence intervals</CardDescription>
+        <CardDescription>
+          Projected returns over the next {timeHorizon} {timeHorizon === 1 ? 'year' : 'years'} using statistical models
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="forecast">
-          <TabsList className="mb-4">
-            <TabsTrigger value="forecast">Forecast Chart</TabsTrigger>
-            <TabsTrigger value="scenarios">Scenario Analysis</TabsTrigger>
+        <Tabs value={selectedModel} onValueChange={setSelectedModel}>
+          <TabsList className="mb-6">
+            <TabsTrigger value="arima">ARIMA</TabsTrigger>
+            <TabsTrigger value="garch">GARCH</TabsTrigger>
+            <TabsTrigger value="montecarlo">Monte Carlo</TabsTrigger>
+            <TabsTrigger value="regime">Regime Switching</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="forecast">
-            <div className="h-[350px]">
+          <TabsContent value={selectedModel} className="mt-0">
+            <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart
+                <LineChart
                   data={forecastData}
-                  margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                 >
-                  <defs>
-                    <linearGradient id="splitColor" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#38BDF8" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="#38BDF8" stopOpacity={0.1} />
-                    </linearGradient>
-                  </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                  <XAxis
-                    dataKey="date"
+                  <XAxis 
+                    dataKey="date" 
                     tickLine={false}
                     axisLine={false}
                     tick={{ fill: '#94A3B8', fontSize: 12 }}
                   />
-                  <YAxis
+                  <YAxis 
                     tickLine={false}
                     axisLine={false}
                     tick={{ fill: '#94A3B8', fontSize: 12 }}
-                    tickFormatter={(value) => `$${value.toLocaleString()}`}
+                    tickFormatter={(value) => `${value}%`}
                   />
-                  <Tooltip
+                  <Tooltip 
                     contentStyle={{ backgroundColor: '#FFF', borderRadius: '0.375rem', border: '1px solid #E2E8F0' }}
-                    formatter={(value) => [`$${Number(value).toLocaleString()}`, "Value"]}
+                    formatter={(value) => [`${Number(value).toFixed(2)}%`, "Return"]}
                     labelFormatter={(label) => `Date: ${label}`}
                   />
-                  <ReferenceLine x="Jan 2024" stroke="#94A3B8" strokeDasharray="3 3" label={{ value: 'Forecast Start', position: 'top', fill: '#94A3B8', fontSize: 12 }} />
-                  
-                  {/* Historical data */}
-                  <Line
-                    type="monotone"
-                    dataKey="historical"
-                    stroke="#0EA5E9"
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="return" 
+                    name="Expected Return"
+                    stroke="#6366F1" 
+                    activeDot={{ r: 8 }}
                     strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 6 }}
                   />
-                  
-                  {/* Forecast data */}
-                  <Line
-                    type="monotone"
-                    dataKey="forecast"
-                    stroke="#8B5CF6"
-                    strokeWidth={2}
-                    dot={false}
+                  <Line 
+                    type="monotone" 
+                    dataKey="upperBound" 
+                    name="Upper Bound (95%)"
+                    stroke="#C7D2FE" 
                     strokeDasharray="5 5"
-                    activeDot={{ r: 6 }}
+                    dot={false}
                   />
-                  
-                  {/* Confidence intervals */}
-                  <Area
-                    type="monotone"
-                    dataKey="upperBound"
-                    stroke="none"
-                    fill="url(#splitColor)"
-                    activeDot={false}
+                  <Line 
+                    type="monotone" 
+                    dataKey="lowerBound" 
+                    name="Lower Bound (95%)"
+                    stroke="#C7D2FE" 
+                    strokeDasharray="5 5"
+                    dot={false}
                   />
-                  <Area
-                    type="monotone"
-                    dataKey="lowerBound"
-                    stroke="none"
-                    fill="url(#splitColor)"
-                    activeDot={false}
-                  />
-                </ComposedChart>
+                </LineChart>
               </ResponsiveContainer>
             </div>
             
-            <div className="mt-4 flex flex-wrap gap-2 justify-center">
-              <div className="flex items-center mr-4">
-                <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
-                <span className="text-xs text-slate-600">Historical</span>
-              </div>
-              <div className="flex items-center mr-4">
-                <div className="w-3 h-3 rounded-full bg-purple-500 mr-2"></div>
-                <span className="text-xs text-slate-600">Forecast</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-3 h-3 rounded-full bg-blue-200 mr-2"></div>
-                <span className="text-xs text-slate-600">Confidence Interval (95%)</span>
-              </div>
+            <div className="mt-6 p-4 bg-slate-50 rounded-lg">
+              <h4 className="font-medium mb-2">Model Description</h4>
+              {selectedModel === "arima" && (
+                <p className="text-sm text-slate-600">
+                  ARIMA (AutoRegressive Integrated Moving Average) forecasts future returns based on patterns in past returns,
+                  treating the time series as stationary after differencing.
+                </p>
+              )}
+              {selectedModel === "garch" && (
+                <p className="text-sm text-slate-600">
+                  GARCH (Generalized AutoRegressive Conditional Heteroskedasticity) models volatility clustering,
+                  accounting for periods of high and low volatility in financial returns.
+                </p>
+              )}
+              {selectedModel === "montecarlo" && (
+                <p className="text-sm text-slate-600">
+                  Monte Carlo simulation generates thousands of random potential future paths for returns,
+                  allowing for a probability distribution of outcomes rather than a single forecast.
+                </p>
+              )}
+              {selectedModel === "regime" && (
+                <p className="text-sm text-slate-600">
+                  Regime Switching models capture structural shifts in market conditions, allowing for different
+                  forecast parameters in bull versus bear markets.
+                </p>
+              )}
             </div>
-          </TabsContent>
-          
-          <TabsContent value="scenarios">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Scenario</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Expected Return</TableHead>
-                  <TableHead className="text-right">Probability</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {scenarioAnalysis.map((scenario, index) => (
-                  <TableRow key={index}>
-                    <TableCell className="font-medium">{scenario.name}</TableCell>
-                    <TableCell>{scenario.description}</TableCell>
-                    <TableCell className={`text-right ${scenario.expectedReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {scenario.expectedReturn >= 0 ? '+' : ''}{scenario.expectedReturn}%
-                    </TableCell>
-                    <TableCell className="text-right">{scenario.probability}%</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            
-            <p className="text-xs text-slate-500 mt-4">
-              Note: These scenarios are based on historical data and market analysis. Actual results may vary significantly.
-            </p>
           </TabsContent>
         </Tabs>
       </CardContent>

@@ -6,7 +6,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { SearchBar } from "@/components/SearchBar";
-import { FavoriteSecurities } from "@/components/market/FavoriteSecurities";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -15,6 +14,8 @@ interface DashboardLayoutProps {
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
+  const location = useLocation();
+  const isDashboardPage = location.pathname === "/";
   
   useEffect(() => {
     const role = sessionStorage.getItem("userRole");
@@ -72,8 +73,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               {children}
             </div>
             
-            {/* Favorite Securities Sidebar - only show for non-admin users */}
-            {userRole === "trader" && (
+            {/* Favorite Securities Sidebar - only show on dashboard for traders */}
+            {userRole === "trader" && isDashboardPage && false && (
               <div className="w-full md:w-80 p-4 border-l bg-white">
                 <FavoriteSecurities />
               </div>

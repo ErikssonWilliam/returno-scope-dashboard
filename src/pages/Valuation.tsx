@@ -7,12 +7,15 @@ import MonteCarloValuation from "@/components/valuation/MonteCarloValuation";
 import FiniteDifferenceValuation from "@/components/valuation/FiniteDifferenceValuation";
 import BinomialTreeValuation from "@/components/valuation/BinomialTreeValuation";
 import BlackScholesValuation from "@/components/valuation/BlackScholesValuation";
-import HestonModelValuation from "@/components/valuation/HestonModelValuation";
-import GarchPoissonValuation from "@/components/valuation/GarchPoissonValuation";
+import { HestonModelValuation } from "@/components/valuation/HestonModelValuation";
+import { GarchPoissonValuation } from "@/components/valuation/GarchPoissonValuation";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 
 const Valuation = () => {
   const [activeTab, setActiveTab] = useState("monte-carlo");
-
+  const [timeHorizon, setTimeHorizon] = useState(1); // Default 1 year
+  
   return (
     <DashboardLayout>
       <div className="container mx-auto p-4">
@@ -22,6 +25,24 @@ const Valuation = () => {
             Use industry-standard option pricing models to value financial derivatives. Adjust input parameters to see how they affect
             the theoretical value of options and other derivatives.
           </p>
+        </div>
+        
+        <div className="mb-6 bg-white p-4 rounded-lg shadow-sm">
+          <Label htmlFor="time-horizon" className="text-sm font-medium mb-2 block">
+            Time Horizon: {timeHorizon} {timeHorizon === 1 ? 'Year' : 'Years'}
+          </Label>
+          <div className="flex items-center gap-4">
+            <Slider 
+              id="time-horizon"
+              min={0.25} 
+              max={5} 
+              step={0.25} 
+              value={[timeHorizon]} 
+              onValueChange={(value) => setTimeHorizon(value[0])}
+              className="w-full max-w-sm"
+            />
+            <span className="text-sm text-gray-500 w-24">0.25 - 5 Years</span>
+          </div>
         </div>
 
         <Tabs 
@@ -48,7 +69,7 @@ const Valuation = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <MonteCarloValuation />
+                <MonteCarloValuation timeHorizon={timeHorizon} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -63,7 +84,7 @@ const Valuation = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <FiniteDifferenceValuation />
+                <FiniteDifferenceValuation timeHorizon={timeHorizon} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -78,7 +99,7 @@ const Valuation = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <BinomialTreeValuation />
+                <BinomialTreeValuation timeHorizon={timeHorizon} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -93,7 +114,7 @@ const Valuation = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <BlackScholesValuation />
+                <BlackScholesValuation timeHorizon={timeHorizon} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -108,7 +129,7 @@ const Valuation = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <HestonModelValuation />
+                <HestonModelValuation timeHorizon={timeHorizon} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -123,7 +144,7 @@ const Valuation = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <GarchPoissonValuation />
+                <GarchPoissonValuation timeHorizon={timeHorizon} />
               </CardContent>
             </Card>
           </TabsContent>

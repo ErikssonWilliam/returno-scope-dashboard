@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { KeyRound, ShieldCheck, User, ArrowRight } from "lucide-react";
+import { KeyRound, ShieldCheck, User, ArrowRight, Linkedin, Instagram } from "lucide-react";
 
 export default function Login() {
   const [role, setRole] = useState<"trader" | "admin" | null>(null);
@@ -63,8 +63,8 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-slate-50 to-blue-50">
-      <div className="w-full max-w-md px-4">
-        <Card className="w-full backdrop-blur-sm bg-white/90 shadow-xl border-none">
+      <div className="w-full max-w-4xl px-4 flex flex-col items-center">
+        <Card className="w-full max-w-md backdrop-blur-sm bg-white/90 shadow-xl border-none mb-6">
           <CardHeader className="text-center pb-4">
             <div className="mx-auto w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
               <KeyRound className="h-8 w-8 text-indigo-600" />
@@ -162,6 +162,51 @@ export default function Login() {
               )}
             </Button>
           </CardFooter>
+        </Card>
+        
+        <Card className="w-full max-w-md bg-gradient-to-r from-indigo-50 to-blue-50 border-none shadow-md">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row items-center justify-between">
+              <div className="mb-4 md:mb-0 md:mr-6 text-center md:text-left">
+                <h2 className="text-xl font-bold text-indigo-800 mb-2">Welcome to ReturnoScope</h2>
+                <p className="text-slate-600 max-w-md">
+                  Your comprehensive platform for portfolio management, market analysis, and financial valuations. 
+                  Access real-time data and sophisticated analysis tools all in one place.
+                </p>
+                <div className="mt-4 flex gap-3 justify-center md:justify-start">
+                  <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">
+                    Learn More
+                  </Button>
+                  <Button size="sm" variant="outline" className="border-indigo-600 text-indigo-600 hover:bg-indigo-50">
+                    Documentation
+                  </Button>
+                </div>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="text-center mb-3">
+                  <span className="text-sm font-medium text-slate-500">Connect with us</span>
+                </div>
+                <div className="flex gap-4">
+                  <a 
+                    href="https://linkedin.com/in/returnoscope" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-indigo-600 hover:text-indigo-800 transition-colors"
+                  >
+                    <Linkedin size={24} />
+                  </a>
+                  <a 
+                    href="https://instagram.com/returnoscope" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-indigo-600 hover:text-indigo-800 transition-colors"
+                  >
+                    <Instagram size={24} />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </CardContent>
         </Card>
         
         <div className="text-center mt-4 text-sm text-slate-500">
