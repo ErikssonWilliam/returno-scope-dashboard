@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Star, TrendingUp, TrendingDown, Clock } from "lucide-react";
 import { toast } from "sonner";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type Security = {
   id: string;
@@ -56,8 +56,8 @@ export const FavoriteSecurities = () => {
     : securities.slice(0, 3); // Show top 3 if no favorites
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
+    <Card className="w-full">
+      <CardHeader className="pb-2">
         <CardTitle className="text-lg flex items-center">
           <Star className="h-5 w-5 mr-2 text-amber-500" />
           Tracked Securities
@@ -70,48 +70,46 @@ export const FavoriteSecurities = () => {
             <p className="text-sm mt-1">Star your favorite securities to track them here</p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
-            {displayedSecurities.map((security) => (
-              <div key={security.id} className="flex justify-between items-center p-4 hover:bg-slate-50">
-                <div className="flex items-center">
-                  <button
-                    onClick={() => toggleFavorite(security.id)}
-                    className="mr-3 text-amber-400 hover:text-amber-500 focus:outline-none"
-                  >
-                    <Star
-                      className="h-5 w-5"
-                      fill={favorites.includes(security.id) ? "currentColor" : "none"}
-                    />
-                  </button>
-                  <div>
-                    <div className="flex items-center">
-                      <span className="font-medium">{security.symbol}</span>
-                      <span className="text-xs text-slate-500 ml-2">{security.name}</span>
+          <ScrollArea className="w-full" orientation="horizontal">
+            <div className="flex min-w-max">
+              {displayedSecurities.map((security) => (
+                <div key={security.id} className="p-4 min-w-[220px] border-r border-slate-100 last:border-r-0 hover:bg-slate-50">
+                  <div className="flex flex-col">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center">
+                        <span className="font-medium">{security.symbol}</span>
+                        <button
+                          onClick={() => toggleFavorite(security.id)}
+                          className="ml-2 text-amber-400 hover:text-amber-500 focus:outline-none"
+                        >
+                          <Star
+                            className="h-4 w-4"
+                            fill={favorites.includes(security.id) ? "currentColor" : "none"}
+                          />
+                        </button>
+                      </div>
+                      <div className={`flex items-center text-xs ${
+                        security.change >= 0 ? "text-green-600" : "text-red-600"
+                      }`}>
+                        {security.change >= 0 ? (
+                          <TrendingUp className="h-3 w-3 mr-1" />
+                        ) : (
+                          <TrendingDown className="h-3 w-3 mr-1" />
+                        )}
+                        {security.changePercent.toFixed(2)}%
+                      </div>
                     </div>
+                    <div className="text-xs text-slate-500">{security.name}</div>
+                    <div className="font-medium mt-1">${security.price.toLocaleString()}</div>
                     <div className="flex items-center text-xs text-slate-500 mt-1">
                       <Clock className="h-3 w-3 mr-1" />
                       <span>{security.lastUpdated}</span>
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="font-medium">${security.price.toLocaleString()}</div>
-                  <div className={`flex items-center text-xs ${
-                    security.change >= 0 ? "text-green-600" : "text-red-600"
-                  }`}>
-                    {security.change >= 0 ? (
-                      <TrendingUp className="h-3 w-3 mr-1" />
-                    ) : (
-                      <TrendingDown className="h-3 w-3 mr-1" />
-                    )}
-                    {security.change >= 0 ? "+" : ""}
-                    {security.change.toFixed(2)} ({security.change >= 0 ? "+" : ""}
-                    {security.changePercent.toFixed(2)}%)
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </ScrollArea>
         )}
         
         {favorites.length > 0 && (

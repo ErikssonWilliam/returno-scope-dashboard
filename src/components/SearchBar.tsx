@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Search, X, ArrowRight, LineChart, BarChart3, PieChart, TrendingUp, Calculator } from "lucide-react";
@@ -105,6 +104,7 @@ const searchItems: SearchResult[] = [
 export const SearchBar = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -135,7 +135,7 @@ export const SearchBar = () => {
           <span>Search securities or features...</span>
         </div>
         <kbd className="hidden md:flex pointer-events-none items-center gap-1 rounded border bg-slate-100 px-1.5 text-[10px] font-medium text-slate-600">
-          <span className="text-xs">⌘</span>K
+          {isMac ? <span className="text-xs">⌘</span> : <span className="text-xs">Ctrl</span>}/
         </kbd>
       </Button>
 

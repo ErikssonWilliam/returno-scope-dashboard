@@ -5,6 +5,7 @@ import { OrderBook } from "@/components/market/OrderBook";
 import { TradeForm } from "@/components/market/TradeForm";
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Market() {
   const [selectedSecurity, setSelectedSecurity] = useState("AAPL");
@@ -29,17 +30,23 @@ export default function Market() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2">
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="overview">Market Overview</TabsTrigger>
+            <TabsTrigger value="trading">Trading</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="overview" className="w-full">
             <MarketOverview selectedSecurity={selectedSecurity} onSelectSecurity={setSelectedSecurity} />
-          </div>
-          <div>
-            <div className="space-y-6">
+          </TabsContent>
+          
+          <TabsContent value="trading" className="w-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <TradeForm selectedSecurity={selectedSecurity} />
               <OrderBook selectedSecurity={selectedSecurity} />
             </div>
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );
