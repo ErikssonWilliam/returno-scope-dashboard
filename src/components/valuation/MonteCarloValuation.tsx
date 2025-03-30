@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -7,16 +6,24 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
-const MonteCarloValuation = () => {
+interface MonteCarloValuationProps {
+  timeHorizon?: number;
+}
+
+const MonteCarloValuation = ({ timeHorizon = 1 }: MonteCarloValuationProps) => {
   const [spotPrice, setSpotPrice] = useState<number>(100);
   const [strikePrice, setStrikePrice] = useState<number>(100);
   const [volatility, setVolatility] = useState<number>(0.2);
   const [riskFreeRate, setRiskFreeRate] = useState<number>(0.05);
-  const [timeToMaturity, setTimeToMaturity] = useState<number>(1);
+  const [timeToMaturity, setTimeToMaturity] = useState<number>(timeHorizon);
   const [simulations, setSimulations] = useState<number>(1000);
   const [optionType, setOptionType] = useState<string>("call");
   const [pricePaths, setPricePaths] = useState<any[]>([]);
   const [optionPrice, setOptionPrice] = useState<number | null>(null);
+  
+  useEffect(() => {
+    setTimeToMaturity(timeHorizon);
+  }, [timeHorizon]);
   
   const runSimulation = () => {
     // Number of steps in each path

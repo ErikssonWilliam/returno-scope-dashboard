@@ -1,139 +1,77 @@
 
-import { useState } from "react";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-type Node = {
-  price: number;
-  value: number;
-  x: number;
-  y: number;
-};
+interface BinomialTreeValuationProps {
+  timeHorizon?: number;
+}
 
-type Edge = {
-  source: { x: number; y: number };
-  target: { x: number; y: number };
-  probability: number;
-};
-
-const BinomialTreeValuation = () => {
+const BinomialTreeValuation: React.FC<BinomialTreeValuationProps> = ({ timeHorizon = 1 }) => {
   const [spotPrice, setSpotPrice] = useState<number>(100);
   const [strikePrice, setStrikePrice] = useState<number>(100);
+  const [timeToMaturity, setTimeToMaturity] = useState<number>(timeHorizon);
   const [volatility, setVolatility] = useState<number>(0.2);
   const [riskFreeRate, setRiskFreeRate] = useState<number>(0.05);
-  const [timeToMaturity, setTimeToMaturity] = useState<number>(1);
-  const [steps, setSteps] = useState<number>(5);
   const [optionType, setOptionType] = useState<string>("call");
-  const [optionStyle, setOptionStyle] = useState<string>("european");
+  const [steps, setSteps] = useState<number>(50);
   const [optionPrice, setOptionPrice] = useState<number | null>(null);
-  const [nodes, setNodes] = useState<Node[]>([]);
-  const [edges, setEdges] = useState<Edge[]>([]);
-  
-  const runBinomialTree = () => {
-    // Time step
+  const [exerciseStyle, setExerciseStyle] = useState<string>("european");
+
+  // Update timeToMaturity when timeHorizon prop changes
+  useEffect(() => {
+    setTimeToMaturity(timeHorizon);
+  }, [timeHorizon]);
+
+  const calculatePrice = () => {
+    // Calculate parameters for the binomial tree
     const dt = timeToMaturity / steps;
-    
-    // Calculate up and down factors
     const u = Math.exp(volatility * Math.sqrt(dt));
     const d = 1 / u;
-    
-    // Risk-neutral probability
     const p = (Math.exp(riskFreeRate * dt) - d) / (u - d);
     
-    // Generate the tree nodes and edges
-    const newNodes: Node[] = [];
-    const newEdges: Edge[] = [];
+    // Initialize arrays for the stock price and option value at maturity
+    const stockPrices = new Array(steps + 1);
+    const optionValues = new Array(steps + 1);
     
-    // Generate price tree (forward pass)
-    const priceTree: number[][] = [];
+    // Calculate stock prices at maturity (final step)
     for (let i = 0; i <= steps; i++) {
-      priceTree[i] = [];
-      for (let j = 0; j <= i; j++) {
-        const price = spotPrice * Math.pow(u, j) * Math.pow(d, i - j);
-        priceTree[i][j] = price;
-        
-        // Add node
-        newNodes.push({
-          price,
-          value: 0, // Will be filled in backward pass
-          x: i * 100,
-          y: (j - i/2) * 70
-        });
-        
-        // Add edges
-        if (i < steps) {
-          // Up edge
-          newEdges.push({
-            source: { x: i * 100, y: (j - i/2) * 70 },
-            target: { x: (i+1) * 100, y: ((j+1) - (i+1)/2) * 70 },
-            probability: p
-          });
-          
-          // Down edge
-          newEdges.push({
-            source: { x: i * 100, y: (j - i/2) * 70 },
-            target: { x: (i+1) * 100, y: (j - (i+1)/2) * 70 },
-            probability: 1-p
-          });
-        }
-      }
-    }
-    
-    // Generate option value tree (backward pass)
-    const valueTree: number[][] = [];
-    for (let i = 0; i <= steps; i++) {
-      valueTree[i] = [];
-    }
-    
-    // Terminal values
-    for (let j = 0; j <= steps; j++) {
+      stockPrices[i] = spotPrice * Math.pow(u, steps - i) * Math.pow(d, i);
       if (optionType === "call") {
-        valueTree[steps][j] = Math.max(0, priceTree[steps][j] - strikePrice);
+        optionValues[i] = Math.max(0, stockPrices[i] - strikePrice);
       } else {
-        valueTree[steps][j] = Math.max(0, strikePrice - priceTree[steps][j]);
+        optionValues[i] = Math.max(0, strikePrice - stockPrices[i]);
       }
     }
     
-    // Backward induction
-    for (let i = steps - 1; i >= 0; i--) {
-      for (let j = 0; j <= i; j++) {
-        const exerciseValue = optionType === "call"
-          ? Math.max(0, priceTree[i][j] - strikePrice)
-          : Math.max(0, strikePrice - priceTree[i][j]);
+    // Work backwards through the tree
+    for (let j = steps - 1; j >= 0; j--) {
+      for (let i = 0; i <= j; i++) {
+        const currentSpot = spotPrice * Math.pow(u, j - i) * Math.pow(d, i);
+        const expectedValue = (p * optionValues[i] + (1 - p) * optionValues[i + 1]) * Math.exp(-riskFreeRate * dt);
         
-        const continuationValue = Math.exp(-riskFreeRate * dt) * 
-          (p * valueTree[i+1][j+1] + (1-p) * valueTree[i+1][j]);
-        
-        if (optionStyle === "american") {
-          valueTree[i][j] = Math.max(exerciseValue, continuationValue);
+        if (exerciseStyle === "american") {
+          // For American options, compare with immediate exercise value
+          const exerciseValue = optionType === "call" 
+            ? Math.max(0, currentSpot - strikePrice) 
+            : Math.max(0, strikePrice - currentSpot);
+          optionValues[i] = Math.max(expectedValue, exerciseValue);
         } else {
-          valueTree[i][j] = continuationValue;
+          // For European options, just use the expected discounted value
+          optionValues[i] = expectedValue;
         }
       }
     }
     
-    // Update node values
-    for (let i = 0; i <= steps; i++) {
-      for (let j = 0; j <= i; j++) {
-        const nodeIndex = newNodes.findIndex(
-          n => Math.abs(n.x - i * 100) < 0.1 && Math.abs(n.y - (j - i/2) * 70) < 0.1
-        );
-        if (nodeIndex !== -1) {
-          newNodes[nodeIndex].value = valueTree[i][j];
-        }
-      }
-    }
-    
-    setNodes(newNodes);
-    setEdges(newEdges);
-    setOptionPrice(valueTree[0][0]);
+    // The option price is the value at the root of the tree
+    setOptionPrice(optionValues[0]);
   };
-  
+
   return (
-    <div className="grid md:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -153,6 +91,17 @@ const BinomialTreeValuation = () => {
               type="number"
               value={strikePrice}
               onChange={(e) => setStrikePrice(parseFloat(e.target.value) || 0)}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="time-to-maturity">Time to Maturity (years)</Label>
+            <Input
+              id="time-to-maturity"
+              type="number"
+              step="0.1"
+              value={timeToMaturity}
+              onChange={(e) => setTimeToMaturity(parseFloat(e.target.value) || 0)}
             />
           </div>
           
@@ -179,29 +128,6 @@ const BinomialTreeValuation = () => {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="time-to-maturity">Time to Maturity (years)</Label>
-            <Input
-              id="time-to-maturity"
-              type="number"
-              step="0.1"
-              value={timeToMaturity}
-              onChange={(e) => setTimeToMaturity(parseFloat(e.target.value) || 0)}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="steps">Number of Steps</Label>
-            <Input
-              id="steps"
-              type="number"
-              min="1"
-              max="10"
-              value={steps}
-              onChange={(e) => setSteps(parseInt(e.target.value) || 1)}
-            />
-          </div>
-          
-          <div className="space-y-2">
             <Label htmlFor="option-type">Option Type</Label>
             <Select value={optionType} onValueChange={setOptionType}>
               <SelectTrigger id="option-type">
@@ -215,10 +141,10 @@ const BinomialTreeValuation = () => {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="option-style">Option Style</Label>
-            <Select value={optionStyle} onValueChange={setOptionStyle}>
-              <SelectTrigger id="option-style">
-                <SelectValue placeholder="Select option style" />
+            <Label htmlFor="exercise-style">Exercise Style</Label>
+            <Select value={exerciseStyle} onValueChange={setExerciseStyle}>
+              <SelectTrigger id="exercise-style">
+                <SelectValue placeholder="Select exercise style" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="european">European</SelectItem>
@@ -226,10 +152,20 @@ const BinomialTreeValuation = () => {
               </SelectContent>
             </Select>
           </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="steps">Number of Steps</Label>
+            <Input
+              id="steps"
+              type="number"
+              value={steps}
+              onChange={(e) => setSteps(parseInt(e.target.value) || 10)}
+            />
+          </div>
         </div>
         
-        <Button className="w-full" onClick={runBinomialTree}>
-          Calculate Using Binomial Tree
+        <Button className="w-full" onClick={calculatePrice}>
+          Calculate Option Price
         </Button>
         
         {optionPrice !== null && (
@@ -237,81 +173,34 @@ const BinomialTreeValuation = () => {
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold mb-2">Results</h3>
               <p className="text-3xl font-bold text-green-600">${optionPrice.toFixed(2)}</p>
-              <p className="text-sm text-gray-600 mt-1">Option Price</p>
+              <p className="text-sm text-gray-600 mt-1">Estimated Option Price</p>
             </CardContent>
           </Card>
         )}
       </div>
       
       <div className="bg-white p-4 rounded-lg shadow">
-        <h3 className="text-lg font-semibold mb-4">Binomial Tree Visualization</h3>
-        {nodes.length > 0 ? (
-          <div className="h-80 overflow-auto">
-            <svg width={(steps+1) * 120} height="300" viewBox={`-20 -150 ${(steps+1) * 120} 300`}>
-              {/* Draw edges first */}
-              {edges.map((edge, i) => (
-                <g key={`edge-${i}`}>
-                  <line
-                    x1={edge.source.x}
-                    y1={edge.source.y}
-                    x2={edge.target.x}
-                    y2={edge.target.y}
-                    stroke="#aaa"
-                    strokeWidth="1"
-                  />
-                  <text
-                    x={(edge.source.x + edge.target.x) / 2}
-                    y={(edge.source.y + edge.target.y) / 2 - 5}
-                    fontSize="10"
-                    fill="#666"
-                    textAnchor="middle"
-                  >
-                    {edge.probability.toFixed(2)}
-                  </text>
-                </g>
-              ))}
-              
-              {/* Draw nodes */}
-              {nodes.map((node, i) => (
-                <g key={`node-${i}`}>
-                  <circle
-                    cx={node.x}
-                    cy={node.y}
-                    r="20"
-                    fill="white"
-                    stroke={optionType === "call" ? "#10B981" : "#3B82F6"}
-                    strokeWidth="2"
-                  />
-                  <text
-                    x={node.x}
-                    y={node.y - 5}
-                    fontSize="10"
-                    textAnchor="middle"
-                  >
-                    ${node.price.toFixed(1)}
-                  </text>
-                  <text
-                    x={node.x}
-                    y={node.y + 12}
-                    fontSize="12"
-                    fontWeight="bold"
-                    fill={optionType === "call" ? "#10B981" : "#3B82F6"}
-                    textAnchor="middle"
-                  >
-                    ${node.value.toFixed(2)}
-                  </text>
-                </g>
-              ))}
-            </svg>
-          </div>
-        ) : (
-          <div className="h-80 flex items-center justify-center bg-gray-50 rounded-lg">
-            <p className="text-gray-500">Generate a tree to visualize</p>
-          </div>
-        )}
-        <p className="text-xs text-gray-500 mt-2">
-          Each node shows: Asset Price (top) and Option Value (bottom)
+        <h3 className="text-lg font-semibold mb-4">Binomial Tree Method</h3>
+        <p className="text-sm text-gray-600 mb-4">
+          The binomial tree model constructs a discrete-time lattice of possible future asset prices. 
+          At each node, the price either moves up or down with specified probabilities, creating a tree structure.
+          The option is valued by working backward from the final nodes, applying risk-neutral valuation.
         </p>
+        <div className="mt-4">
+          <h4 className="font-medium text-sm mb-2">Advantages:</h4>
+          <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+            <li>Intuitive and relatively simple to implement</li>
+            <li>Can handle American options and early exercise features</li>
+            <li>Convergence to Black-Scholes as the number of steps increases</li>
+          </ul>
+        </div>
+        <div className="mt-4">
+          <h4 className="font-medium text-sm mb-2">Model Parameters:</h4>
+          <p className="text-sm text-gray-600">
+            More steps yield higher accuracy but require more computation. The calculation uses a risk-neutral approach 
+            with up/down magnitudes derived from the volatility and time interval.
+          </p>
+        </div>
       </div>
     </div>
   );
